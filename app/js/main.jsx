@@ -1,11 +1,9 @@
 'use strict';
 
 var React = require('react');
+var Router = require('react-router');
+var Routes = require('app/routes.jsx');
 
-var Test = React.createClass({
-  render: function() {
-    return <h1>Hello {this.props.name}</h1>;
-  }
+Router.run(Routes, Router.HistoryLocation, function (Handler) {
+  React.render( <Handler />, document.body);
 });
-
-React.render(<Test name="World" />, document.body);
