@@ -111,10 +111,6 @@ gulp.task('serve', ['build'], function() {
     }
   });
 
-  gulp.watch([
-    `${config.dest.root}/**/*.js`
-  ]).on('change', reload);
-
   gulp.watch(`${config.src.root}/**/*.jade`, ['html']);
   gulp.watch(`${config.src.style}/**/*.styl`, ['styles']);
   gulp.watch([
@@ -122,7 +118,7 @@ gulp.task('serve', ['build'], function() {
     `${config.src.js}/**/*.jsx`,
     `${__dirname}/lib/**/*.js`,
     `${__dirname}/tasks/**/*.js`
-  ], ['js']);
+  ], ['js', reload]);
 });
 
 gulp.task('deploy', ['build'], function(cb) {
