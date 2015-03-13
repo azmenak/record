@@ -8,3 +8,5 @@ bower_components
 public
 build
 .tmp
+rules.json
+config/secrets.json
