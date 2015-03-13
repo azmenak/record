@@ -55,7 +55,8 @@ gulp.task('js', function () {
       base: config.src.root,
       merge: true,
       path: config.dest.manifest
-    })) );
+    })) )
+    .pipe( $.if(config.env.production, gulp.dest(config.dest.root)) );
 });
 
 gulp.task('less', function() {
@@ -70,7 +71,8 @@ gulp.task('less', function() {
       base: config.src.root,
       merge: true,
       path: config.dest.manifest
-    })) );
+    })) )
+    .pipe( $.if(config.env.production, gulp.dest(config.dest.root)) );
 });
 
 gulp.task('styles', function() {
@@ -96,10 +98,12 @@ gulp.task('styles', function() {
       base: config.src.root,
       merge: true,
       path: config.dest.manifest
-    })) );
+    })) )
+    .pipe( $.if(config.env.production, gulp.dest(config.dest.root)) );
 });
 
 gulp.task('html', function (cb) {
+  console.log(manifest(config.dest.manifest));
   return gulp.src(config.src.root + '/views/layout.jade')
     .pipe( $.jade({
       locals: _.assign({},
@@ -158,6 +162,6 @@ gulp.task('serve', ['build'], function() {
 });
 
 gulp.task('deploy', ['build'], function(cb) {
-  ghPages = require('gh-pages');
+  var ghPages = require('gh-pages');
   return ghPages.publish(config.dest.root, cb);
 });
