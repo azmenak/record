@@ -2,6 +2,7 @@
 
 var React = require('react');
 var _ = require('lodash');
+var num = require('numeral');
 var ref = require('app/ref.js');
 
 module.exports = React.createClass({
@@ -37,7 +38,7 @@ module.exports = React.createClass({
         <tr className="pr" key={product.name}>
           <th>{product.name}</th>
           <td>{product.qty}</td>
-          <td>{product.qty * 22.05}</td>
+          <td>{num(product.qty*22.05).format('0,0')+' ft²'}</td>
         </tr>
       );
     }));
