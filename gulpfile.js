@@ -1,5 +1,8 @@
 'use strict';
 // External Libs
+var fs          = require('fs');
+var url         = require('url');
+var historyApiFallback = require('connect-history-api-fallback');
 var gulp        = require('gulp');
 var $           = require('gulp-load-plugins')();
 var browserSync = require('browser-sync');
@@ -10,10 +13,19 @@ var _           = require('lodash');
 // Project Files
 var manifest = require('tasks/manifest');
 
+var secrets = JSON.parse(
+  fs.readFileSync(`${__dirname}/config/secrets.json`)
+);
 var config = {
   dest: { root: `${__dirname}/build` },
   src: { root: `${__dirname}/app` },
-  env: { production: process.env.NODE_ENV === 'production' }
+  env: {
+    production: process.env.NODE_ENV === 'production',
+    firebase: {
+      location: "https://record.firebaseio.com/",
+      secret: secrets.firebase
+    }
+  }
 };
 config.dest.js       = `${config.dest.root}/js`;
 config.dest.style    = `${config.dest.root}/css`;
@@ -22,9 +34,12 @@ config.src.js        = `${config.src.root}/js`;
 config.src.style     = `${config.src.root}/style`;
 config.src.main      = `${config.src.js}/main.jsx`;
 
+
 gulp.task('js', function () {
   return gulp.src(config.src.main, {read: false})
-    .pipe( $.plumber() )
+    .pipe( $.plumber({
+      errorHandler: $.notify.onError("Err: <%= error.message %>")
+    }) )
     .pipe( $.browserify({ debug: !config.env.production }) )
     .pipe( $.if(config.env.production, $.uglify({
       compress: {
@@ -43,6 +58,20 @@ gulp.task('js', function () {
     })) );
 });
 
+gulp.task('less', function() {
+  gulp.src(`${config.src.style}/material-ui.less`)
+    .pipe( $.less() )
+    .pipe( $.postcss([require('css-mqpacker'), require('csswring')]) )
+    .pipe( gulp.dest(config.dest.style) )
+    .pipe( reload({stream: true }) )
+    .pipe( $.if(config.env.production, $.rev()))
+    .pipe( $.if(config.env.production, gulp.dest(config.dest.style)) )
+    .pipe( $.if(config.env.production, $.rev.manifest({
+      base: config.src.root,
+      merge: true,
+      path: config.dest.manifest
+    })) );
+});
 
 gulp.task('styles', function() {
   var autoprefixer = require('autoprefixer-core');
@@ -53,9 +82,10 @@ gulp.task('styles', function() {
     processors.push(require('css-mqpacker'));
     processors.push(require('csswring'));
   }
+
   return gulp.src(`${config.src.style}/master.styl`)
     .pipe( $.if(!config.env.production, $.sourcemaps.init()) )
-    .pipe( $.stylus())
+    .pipe( $.stylus() )
     .pipe( $.if(!config.env.production, $.sourcemaps.write()) )
     .pipe( $.postcss(processors) )
     .pipe( gulp.dest(config.dest.style) )
@@ -97,7 +127,7 @@ gulp.task('size', function () {
 
 gulp.task('build', function(cb) {
   return runSequence('clean',
-              ['styles', 'js'],
+              ['styles', 'less', 'js'],
               'html',
               'size'
          , cb);
@@ -107,17 +137,18 @@ gulp.task('serve', ['build'], function() {
   browserSync({
     port: 9000,
     server: {
-      baseDir: [config.dest.root]
+      baseDir: [config.dest.root],
+      middleware: [historyApiFallback]
     }
   });
 
-  gulp.watch(`${config.src.root}/**/*.jade`, ['html']);
-  gulp.watch(`${config.src.style}/**/*.styl`, ['styles']);
+  gulp.watch("**/*.jade", ['html']);
+  gulp.watch("**/*.styl", ['styles']);
+  gulp.watch("**/*.less", ['less']);
   gulp.watch([
-    `${config.src.js}/**/*.js`,
-    `${config.src.js}/**/*.jsx`,
-    `${__dirname}/lib/**/*.js`,
-    `${__dirname}/tasks/**/*.js`
+    "app/**/*.js",
+    "app/**/*.jsx",
+    "lib/**/*.js"
   ], ['js', reload]);
 });
 
