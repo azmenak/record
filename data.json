@@ -1,0 +1,28 @@
+{
+  "products": {
+    "calico-oil": {
+      "name": "Calico Natural Oil",
+      "status": "CURRENT",
+      "qty": 400
+    },
+    "naked": {
+      "name": "Naked Oak",
+      "status": "CURRENT",
+      "qty": 200
+    },
+    "driftwood": {
+      "name": "Driftwood",
+      "status": "CURRENT",
+      "qty": 330
+    }
+  },
+  "users": {
+    "simplelogin:1": {
+      "provider": "password",
+      "email": "adam.zmenak@gmail.com",
+      "lastLogin": "2015-03-13T04:11:53.941Z",
+      "firstName": "Adam",
+      "lastName": "Zmenak"
+    }
+  }
+}
