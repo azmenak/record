@@ -12,23 +12,19 @@ module.exports = React.createClass({
     return {products: []};
   },
 
+  onValueChange: null,
+
   componentWillMount() {
-    ref.child("products").on("value", (snap) => {
+    this.onValueChange = ref.child("products").on("value", (snap) => {
+      if (!this.isMounted()) return;
       this.setState({
-        products: (function() {
-          let val = snap.val();
-          if (_.isArray(val)) {
-            return val;
-          } else {
-            return _.values(val); 
-          }
-        })()
+        products: (_.isArray(snap.val()) ? snap.val() : _.values(snap.val()))
       });
     })
   },
 
   componentWillUnmount() {
-    ref.child("products").off("value");
+    ref.child("products").off("value", this.onValueChange);
   },
 
   render() {
@@ -37,8 +33,7 @@ module.exports = React.createClass({
       return (
         <tr className="pr" key={product.name}>
           <th>{product.name}</th>
-          <td>{product.qty}</td>
-          <td>{num(product.qty*22.05).format('0,0')+' ft²'}</td>
+          <td>{num(product.qty).format('0,0')+' ft²'}</td>
         </tr>
       );
     }));
@@ -52,7 +47,6 @@ module.exports = React.createClass({
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Box Count</th>
                 <th>Sq.Ft.</th>
               </tr>
             </thead>

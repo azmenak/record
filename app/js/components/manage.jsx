@@ -14,11 +14,19 @@ module.exports = React.createClass({
     }
   },
 
+  onValueChange: null,
+
   componentWillMount() {
-    ref.child('products').on('value', (snap) => {
-      var keys = _.keys(snap.val());
-      this.setState({keys});
+    this.onValueChange = ref.child('products').on('value', (snap) => {
+      if (!this.isMounted()) return;
+      this.setState({
+        keys: _.keys(snap.val())
+      });
     })
+  },
+
+  componentWillUnmount() {
+    ref.child('products').off('value', this.onValueChange);
   },
 
   render() {
