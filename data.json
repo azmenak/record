@@ -1,19 +1,30 @@
 {
   "products": {
-    "calico-oil": {
+    "UC-16440-UV": {
       "name": "Calico Natural Oil",
       "status": "CURRENT",
-      "qty": 400
+      "qty": 908,
+      "id": "UC-16440-UV"
     },
-    "naked": {
+    "UC-14004": {
       "name": "Naked Oak",
       "status": "CURRENT",
-      "qty": 200
+      "qty": 21795
     },
-    "driftwood": {
+    "UC-15226": {
       "name": "Driftwood",
       "status": "CURRENT",
-      "qty": 330
+      "qty": 1498.2
+    },
+    "UC-18001": {
+      "name": "French Smoked Oak",
+      "status": "SPECIAL",
+      "qty": 30393
+    },
+    "UC-15221": {
+      "name": "Burnt Alabaster",
+      "status": "CURRENT",
+      "qty": 0
     }
   },
   "users": {
@@ -22,7 +33,8 @@
       "email": "adam.zmenak@gmail.com",
       "lastLogin": "2015-03-13T04:11:53.941Z",
       "firstName": "Adam",
-      "lastName": "Zmenak"
+      "lastName": "Zmenak",
+      "admin": true
     }
   }
 }
