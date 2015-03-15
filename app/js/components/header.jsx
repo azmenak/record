@@ -19,8 +19,10 @@ module.exports = React.createClass({
     if (!this.props.user) { return []; }
     var _menu = [
       {to: 'home', name: 'Home'},
-      {to: 'manage', name: 'Manage'}
     ];
+    if (this.props.user.admin || this.props.user.editor) {
+      _menu.push({to: 'manage', name: 'Manage'});
+    }
     return _menu;
   },
 
