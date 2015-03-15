@@ -5,6 +5,8 @@ var _ = require('lodash');
 
 var ref = require('app/ref.js');
 
+var Updater = require('app/components/updater.jsx');
+
 module.exports = React.createClass({
   displayName: 'Manage',
 
@@ -18,7 +20,6 @@ module.exports = React.createClass({
 
   componentWillMount() {
     this.onValueChange = ref.child('products').on('value', (snap) => {
-      if (!this.isMounted()) return;
       this.setState({
         keys: _.keys(snap.val())
       });
@@ -35,7 +36,7 @@ module.exports = React.createClass({
         <h2>Manage Inventory</h2>
 
         {this.state.keys.map( (k) => { return (
-          <p key={k}>{k}</p>
+          <Updater key={k} id={k} />
         )})}
       </div>
     )

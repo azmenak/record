@@ -18,8 +18,8 @@ module.exports = React.createClass({
   menu() {
     if (!this.props.user) { return []; }
     var _menu = [
-      {to: 'home', name: 'H'},
-      {to: 'manage', name: 'M'}
+      {to: 'home', name: 'Home'},
+      {to: 'manage', name: 'Manage'}
     ];
     return _menu;
   },
