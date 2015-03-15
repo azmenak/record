@@ -187,6 +187,15 @@ gulp.task('firebase:rebuild', function(cb) {
   });
 });
 
+/*
+ * Primary method for creating new users
+ * args:
+ *  --email
+ *  --password
+ *  --first-name
+ *  --last-name (optional)
+ *  --admin (optional)
+ */
 gulp.task('firebase:createuser', function(cb) {
   var argv = require('minimist')(process.argv.slice(2));
   var Firebase = require('firebase');
