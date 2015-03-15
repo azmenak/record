@@ -172,16 +172,16 @@ gulp.task('firebase:rebuild', function(cb) {
   var ref = new Firebase(config.env.firebase.location);
   ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
     if (err) {
-      console.log('Login failed. ', err);
-      cb();
+      cb(err);
     } else {
       var localData = JSON.parse(fs.readFileSync(`${__dirname}/data.json`));
       ref.set(localData, function(err) {
         console.log(localData);
         if (err) {
-          console.log(err);
+          cb(err);
+        } else {
+          cb();
         }
-        cb();
       });
     }
   });
