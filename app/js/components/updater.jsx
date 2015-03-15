@@ -39,12 +39,21 @@ module.exports = React.createClass({
   },
 
   saveChanges() {
+    var current = _.clone(this.firebaseValue);
     this.ref().update({
       status: this.state.status
     }, (err) => {
       if (err) {
         console.log('Update failed');
       } else {
+        this.ref().child('changes').push({
+          status: {
+            newValue: this.state.status,
+            prevValue: current.status
+          },
+          changedOn: (new Date()).toJSON(),
+          changedBy: ref.getAuth().uid
+        });
         var e = new CustomEvent('ValueUpdated', {'detail': {id: this.props.id}});
         window.dispatchEvent(e);
       }
