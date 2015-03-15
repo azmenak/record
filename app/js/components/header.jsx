@@ -7,14 +7,19 @@ var Link = Router.Link;
 var Mui = require('material-ui');
 var FlatButton = Mui.FlatButton;
 
+/**
+ * This is a controlled component
+ * Updates are pass down thought props from app.jsx
+ */
+
 module.exports = React.createClass({
   displayName: 'Header',
 
   menu() {
     if (!this.props.user) { return []; }
     var _menu = [
-      {to: 'home', name: 'Overview'},
-      {to: 'manage', name: 'Manage Iventory'}
+      {to: 'home', name: 'H'},
+      {to: 'manage', name: 'M'}
     ];
     return _menu;
   },
@@ -28,13 +33,9 @@ module.exports = React.createClass({
             <ul>
               {this.menu().map( (m) => { return (
                 <li key={m.name}>
-                  <FlatButton>
-                    <Link to={m.to}>
-                      <span className="mui-flat-button-label">
-                        {m.name}
-                      </span>
-                    </Link>
-                  </FlatButton>
+                  <Link to={m.to}>
+                    {m.name}
+                  </Link>
                 </li>
               ) })}
             </ul>
