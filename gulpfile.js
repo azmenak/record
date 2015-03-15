@@ -187,6 +187,54 @@ gulp.task('firebase:rebuild', function(cb) {
   });
 });
 
+gulp.task('firebase:createuser', function(cb) {
+  var argv = require('minimist')(process.argv.slice(2));
+  var Firebase = require('firebase');
+  var ref = new Firebase(config.env.firebase.location);
+  ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
+    if (err) {
+      console.log('Login failed. ', err);
+      cb();
+    } else {
+      ref.createUser({
+        email: argv.email,
+        password: argv.password
+      }, function(err, userData) {
+        if (err) {
+          switch (err.code) {
+            case "EMAIL_TAKEN":
+              console.log("The new user account cannot be created because the email is already in use.");
+            break;
+            case "INVALID_EMAIL":
+              console.log("The specified email is not a valid email.");
+            break;
+            default:
+              console.log("Error creating user:", err);
+            cb();
+          }
+        } else {
+          console.log("Successfully created user account with uid:", userData.uid);
+          ref.child(`users/${userData.uid}`).set({
+            admin: !!argv.admin,
+            email: argv.email,
+            firstName: argv['first-name'],
+            lastName: argv['last-name'],
+            provider: 'password',
+            createdOn: (new Date).toJSON()
+          }, function(err) {
+            if (err) {
+              console.log("Error setting user data");
+              cb();
+            } else {
+              console.log("User data has been set");
+              cb();
+            }
+          })
+        }
+      })
+    }
+  })
+})
 
 gulp.task('firebase:template', function(cb) {
   var Firebase = require('firebase');
