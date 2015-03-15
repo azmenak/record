@@ -195,6 +195,7 @@ gulp.task('firebase:rebuild', function(cb) {
  *  --first-name
  *  --last-name (optional)
  *  --admin (optional)
+ *  --edit (optional)
  */
 gulp.task('firebase:createuser', function(cb) {
   var argv = require('minimist')(process.argv.slice(2));

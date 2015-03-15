@@ -6,6 +6,7 @@ var _ = require('lodash');
 var ref = require('app/ref.js');
 
 var Updater = require('app/components/updater.jsx');
+var Create = require('app/components/create.jsx');
 
 module.exports = React.createClass({
   displayName: 'Manage',
@@ -34,6 +35,7 @@ module.exports = React.createClass({
     return (
       <div className="manage-page page">
         <h2>Manage Inventory</h2>
+        <Create />
 
         {this.state.keys.map( (k) => { return (
           <Updater key={k} id={k} />

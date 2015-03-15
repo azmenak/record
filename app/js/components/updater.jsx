@@ -1,3 +1,5 @@
+'use strict';
+
 var React = require('react');
 var _     = require('lodash');
 var num   = require('numeral');
@@ -11,12 +13,7 @@ var TextField = Mui.TextField;
 var RaisedButton = Mui.RaisedButton;
 
 var ref = require('app/ref.js');
-
-var STATUSES = [
-  'CURRENT',
-  'SPECIAL',
-  'DISCONTINUED'
-];
+var STATUSES = require('app/constants.js').statuses;
 
 module.exports = React.createClass({
   displayName: 'Product Updater',
@@ -149,10 +146,13 @@ module.exports = React.createClass({
                 <TextField
                   value={this.state.transactionQty}
                   onChange={this._onChangeTransactionQty}
-                  hintText="0 sq.ft."
+                  hintText="0 (numbers only, no units)"
                   floatingLabelText="Quantity" />
                 <p>
-                  <RaisedButton type="submit" label="Create Transaction" />
+                  <RaisedButton
+                    type="submit"
+                    label="Create Transaction"
+                    secondary={true} />
                 </p>
               </form>
             </Paper>
