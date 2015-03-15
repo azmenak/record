@@ -11,7 +11,8 @@ module.exports = React.createClass({
   getInitialState() {
     return {
       products: [],
-      sort: "name"
+      sort: "name",
+      reverseSort: true
     };
   },
 
@@ -31,14 +32,20 @@ module.exports = React.createClass({
   },
 
   changeSort(sort) {
-    this.setState({
-      sort: sort
-    });
+    if (sort === this.state.sort) {
+      this.setState({
+        reverseSort: !this.state.reverseSort
+      });
+    } else {
+      this.setState({
+        sort: sort
+      });
+    }
   },
 
   render() {
     var products = _(this.state.products)
-      .sortBy(this.state.sort)
+      .sortByOrder([this.state.sort], [this.state.reverseSort])
       .map( (product) => {
         if (product.status !== 'CURRENT') return;
         return (
