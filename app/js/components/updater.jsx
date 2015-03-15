@@ -64,11 +64,13 @@ module.exports = React.createClass({
     e.preventDefault();
     var type = this.state.transactionType;
     var qty = Number(this.state.transactionQty);
+    var old = null;
     if (confirm(
       `Are you sure you want to create transaction:
         ${type} ${num(qty).format('0,0')+' sq.ft.'}`
     )) {
-      ref.child('transactions').push({
+      var pushRef = ref.child('transactions').push()
+      pushRef.set({
         type: type,
         qty: qty,
         user: ref.getAuth().uid,
@@ -79,6 +81,7 @@ module.exports = React.createClass({
           console.log(err);
         } else {
           this.ref().transaction( (current) => {
+            old = _.clone(current);
             var newQty = current.qty + (type === "ADD" ? qty : -qty);
             current.qty = newQty;
             return current;
@@ -86,6 +89,15 @@ module.exports = React.createClass({
             if (err) {
               console.log(err);
             } else {
+              this.ref().child('changes').push({
+                qty: {
+                  newValue: snap.val().qty,
+                  prevValue: old.qty
+                },
+                transaction: pushRef.key(),
+                changedOn: (new Date()).toJSON(),
+                changedBy: ref.getAuth().uid
+              });
               this.toggleTransactionForm();
             }
           });
