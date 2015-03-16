@@ -50,8 +50,11 @@ module.exports = React.createClass({
         if (product.status !== 'CURRENT') return;
         return (
           <tr className="pr" key={product.name}>
-            <th>{product.name}</th>
-            <td>{product.id}</td>
+            <th>
+              <span className="product-name">{product.name}</span>
+              <br />
+              <small className="product-code">{product.id}</small>
+            </th>
             <td>{num(product.qty).format('0,0')+' ft²'}</td>
           </tr>
         );
@@ -71,11 +74,6 @@ module.exports = React.createClass({
                   className={this.state.sort === 'name' ? 'active' : ''}
                   onClick={this.changeSort.bind(this, 'name')}>
                   Name
-                </th>
-                <th
-                  className={this.state.sort === 'id' ? 'active' : ''}
-                  onClick={this.changeSort.bind(this, 'id')}>
-                  Product Code
                 </th>
                 <th
                   className={this.state.sort === 'qty' ? 'active' : ''}
