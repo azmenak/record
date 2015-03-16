@@ -55,7 +55,7 @@ module.exports = React.createClass({
               <br />
               <small className="product-code">{product.id}</small>
             </th>
-            <td>{num(product.qty).format('0,0')+' ft²'}</td>
+            <td>{Number(product.qty) == 0 ? '—' : num(product.qty).format('0,0')+' ft²'}</td>
           </tr>
         );
       })
