@@ -176,7 +176,6 @@ gulp.task('firebase:rebuild', function(cb) {
     } else {
       var localData = JSON.parse(fs.readFileSync(`${__dirname}/data.json`));
       ref.set(localData, function(err) {
-        console.log(localData);
         if (err) {
           cb(err);
         } else {
@@ -255,7 +254,6 @@ gulp.task('firebase:backup', function(cb) {
       cb();
     } else {
       ref.on('value', function(snap) {
-        console.log(snap.val());
         mkdirp.sync(`${__dirname}/backups`);
         fs.writeFileSync(`${__dirname}/backups/${(new Date()).toGMTString()}`,
                          JSON.stringify(snap.val()), 'utf8');
