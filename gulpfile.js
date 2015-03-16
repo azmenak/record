@@ -1,6 +1,7 @@
 'use strict';
 // External Libs
 var fs          = require('fs');
+var mkdirp      = require('mkdirp');
 var url         = require('url');
 var historyApiFallback = require('connect-history-api-fallback');
 var gulp        = require('gulp');
@@ -161,11 +162,10 @@ gulp.task('serve', ['build'], function() {
   ], ['js', reload]);
 });
 
-gulp.task('deploy', ['build'], function(cb) {
+gulp.task('deploy', ['build', 'firebase:backup'], function(cb) {
   var ghPages = require('gh-pages');
   return ghPages.publish(config.dest.root, cb);
 });
-
 
 gulp.task('firebase:rebuild', function(cb) {
   var Firebase = require('firebase');
@@ -244,7 +244,26 @@ gulp.task('firebase:createuser', function(cb) {
       })
     }
   })
-})
+});
+
+gulp.task('firebase:backup', function(cb) {
+  var Firebase = require('firebase');
+  var ref = new Firebase(config.env.firebase.location);
+  ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
+    if (err) {
+      console.log('Login failed. ', err);
+      cb();
+    } else {
+      ref.on('value', function(snap) {
+        console.log(snap.val());
+        mkdirp.sync(`${__dirname}/backups`);
+        fs.writeFileSync(`${__dirname}/backups/${(new Date()).toGMTString()}`,
+                         JSON.stringify(snap.val()), 'utf8');
+        cb();
+      });
+    }
+  });
+});
 
 gulp.task('firebase:template', function(cb) {
   var Firebase = require('firebase');

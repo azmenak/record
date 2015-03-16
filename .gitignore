@@ -10,3 +10,5 @@ build
 .tmp
 rules.json
 config/secrets.json
+
+npm-debug.log
