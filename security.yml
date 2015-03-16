@@ -1,10 +1,21 @@
 functions:
   - isLoggedIn(): auth.uid !== null
   - isUser(username): auth.uid === username
+  - isAdmin(): root.users[auth.uid].admin === true
 
 schema: {}
 
 access:
   - location: /
-    read: true && isLoggedIn()
-    write: true && isLoggedIn()
+    read: true && isAdmin()
+    write: true && isAdmin()
+
+  - location: /users/$userid/
+    read: isUser($userid)
+
+  - location: /users/$userid/email/
+    write: isUser($userid)
+  - location: /users/$userid/firstName/
+    write: isUser($userid)
+  - location: /users/$userid/lastName/
+    write: isUser($userid
