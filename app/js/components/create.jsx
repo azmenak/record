@@ -39,19 +39,16 @@ module.exports = React.createClass({
     })
   },
   _onChangeName(e) {
-    this.setState({
-      name: e.target.value
-    });
+    this.setState({ name: e.target.value });
   },
   _onChangeProductCode(e) {
-    this.setState({
-      productCode: e.target.value.trim()
-    });
+    this.setState({ productCode: e.target.value.trim() });
   },
   _onChangeStatus(e, index, menuItem) {
-    this.setState({
-      status: menuItem.payload
-    });
+    this.setState({ status: menuItem.payload });
+  },
+  _onChangeQty(e) {
+    this.setState({ qty: e.target.value });
   },
 
   createNew(e) {
@@ -62,6 +59,11 @@ module.exports = React.createClass({
     var id = this.state.productCode;
     var name = this.state.name.trim();
     var status = this.state.status;
+    if (this.state.qty) {
+      var qty = Number(this.state.qty);
+    } else {
+      var qty = 0;
+    }
     ref.child(`products/${id}`).transaction( (current) => {
       if (current === null) {
         return {
@@ -69,7 +71,7 @@ module.exports = React.createClass({
           name: name,
           status: status,
           createdOn: (new Date).toJSON(),
-          qty: 0,
+          qty: qty,
           createdBy: ref.getAuth().uid
         };
       } else {
@@ -117,38 +119,44 @@ module.exports = React.createClass({
         <ReactCSSTransitionGroup transitionName="slide-in">
           { this.state.showAddProductForm && (
             <div key="add-form">
-            <Paper zDepth={1} className="paper-container">
-              <form onSubmit={this.createNew}>
-                <h3>Add New Product</h3>
-                <div>
-                  <TextField
-                    value={this.state.name}
-                    onChange={this._onChangeName}
-                    hintText="Full Product Name"
-                    floatingLabelText="Product Name" />
-                </div>
-                <div>
-                  <TextField
-                    value={this.state.productCode}
-                    onChange={this._onChangeProductCode}
-                    hintText="UC-00000 (no spaces)"
-                    floatingLabelText="Product Code" />
-                </div>
-                <div>
-                  <label>Status: </label>
-                  <DropDownMenu
-                    onChange={this._onChangeStatus}
-                    menuItems={this.statusMenuItems} />
-                </div>
-                <p>
-                  <RaisedButton
-                    disabled={this.state.action !== 'IDOL'}
-                    secondary={true}
-                    type="submit"
-                    label={this.state.action === 'IDOL' ? "Save New Product +" : "Saving..."} />
-                </p>
-              </form>
-            </Paper>
+              <Paper zDepth={1} className="paper-container">
+                <form onSubmit={this.createNew}>
+                  <h3>Add New Product</h3>
+                  <div>
+                    <TextField
+                      value={this.state.name}
+                      onChange={this._onChangeName}
+                      hintText="Full Product Name"
+                      floatingLabelText="Product Name" />
+                  </div>
+                  <div>
+                    <TextField
+                      value={this.state.productCode}
+                      onChange={this._onChangeProductCode}
+                      hintText="UC-00000 (no spaces)"
+                      floatingLabelText="Product Code" />
+                  </div>
+                  <div>
+                    <TextField
+                      value={this.state.qty}
+                      onChange={this._onChangeQty}
+                      hintText="0 (optional - numbers only, no units)"
+                      floatingLabelText="Quantity" />
+                  </div>
+                  <div>
+                    <label>Status: </label>
+                    <DropDownMenu
+                      onChange={this._onChangeStatus}
+                      menuItems={this.statusMenuItems} />
+                  </div>
+                  <p>
+                    <RaisedButton
+                      secondary={true}
+                      type="submit"
+                      label="Save New Product +" />
+                  </p>
+                </form>
+              </Paper>
             </div>
           ) }
         </ReactCSSTransitionGroup>
