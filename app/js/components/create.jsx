@@ -1,8 +1,9 @@
 'use strict';
 
-var React = require('react');
+var React = require('react/addons');
 var _     = require('lodash');
 var num   = require('numeral');
+var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
 var Mui = require('material-ui');
 var Paper = Mui.Paper;
@@ -27,7 +28,8 @@ module.exports = React.createClass({
   getInitialState() {
     return {
       showAddProductForm: false,
-      status: STATUSES[0]
+      status: STATUSES[0],
+      action: 'IDOL'
     }
   },
 
@@ -54,6 +56,9 @@ module.exports = React.createClass({
 
   createNew(e) {
     e.preventDefault();
+    this.setState({
+      action: 'SAVING'
+    });
     var id = this.state.productCode;
     var name = this.state.name.trim();
     var status = this.state.status;
@@ -86,6 +91,17 @@ module.exports = React.createClass({
 
   onSuccess(val) {
     console.log(val);
+    e = new CustomEvent('message', {
+      detail: {
+        type: 'success', 
+        payload: val
+      }
+    });
+    window.dispatchEvent(e);
+    this.setState({
+      action: 'IDOL',
+      showAddProductForm: false
+    });
   },
 
   onError(err) {
@@ -98,39 +114,44 @@ module.exports = React.createClass({
         <RaisedButton
           label={this.state.showAddProductForm ? 'Cancel' : '+ Add Product'}
           onClick={this.toggleAddProductForm} />
-        {this.state.showAddProductForm && (
-          <Paper zDepth={1} className="paper-container">
-            <form onSubmit={this.createNew}>
-              <h3>Add New Product</h3>
-              <div>
-                <TextField
-                  value={this.state.name}
-                  onChange={this._onChangeName}
-                  hintText="Full Product Name"
-                  floatingLabelText="Product Name" />
-              </div>
-              <div>
-                <TextField
-                  value={this.state.productCode}
-                  onChange={this._onChangeProductCode}
-                  hintText="UC-00000 (no spaces)"
-                  floatingLabelText="Product Code" />
-              </div>
-              <div>
-                <label>Status: </label>
-                <DropDownMenu
-                  onChange={this._onChangeStatus}
-                  menuItems={this.statusMenuItems} />
-              </div>
-              <p>
-                <RaisedButton
-                  secondary={true}
-                  type="submit"
-                  label="Save New Product +" />
-              </p>
-            </form>
-          </Paper>
-        )}
+        <ReactCSSTransitionGroup transitionName="slide-in">
+          { this.state.showAddProductForm && (
+            <div key="add-form">
+            <Paper zDepth={1} className="paper-container">
+              <form onSubmit={this.createNew}>
+                <h3>Add New Product</h3>
+                <div>
+                  <TextField
+                    value={this.state.name}
+                    onChange={this._onChangeName}
+                    hintText="Full Product Name"
+                    floatingLabelText="Product Name" />
+                </div>
+                <div>
+                  <TextField
+                    value={this.state.productCode}
+                    onChange={this._onChangeProductCode}
+                    hintText="UC-00000 (no spaces)"
+                    floatingLabelText="Product Code" />
+                </div>
+                <div>
+                  <label>Status: </label>
+                  <DropDownMenu
+                    onChange={this._onChangeStatus}
+                    menuItems={this.statusMenuItems} />
+                </div>
+                <p>
+                  <RaisedButton
+                    disabled={this.state.action !== 'IDOL'}
+                    secondary={true}
+                    type="submit"
+                    label={this.state.action === 'IDOL' ? "Save New Product +" : "Saving..."} />
+                </p>
+              </form>
+            </Paper>
+            </div>
+          ) }
+        </ReactCSSTransitionGroup>
       </div>
     )
   }
