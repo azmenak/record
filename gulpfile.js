@@ -10,6 +10,7 @@ var browserSync = require('browser-sync');
 var reload      = browserSync.reload;
 var runSequence = require('run-sequence');
 var _           = require('lodash');
+var Q           = require('q');
 
 // Project Files
 var manifest = require('tasks/manifest');
@@ -167,6 +168,21 @@ gulp.task('deploy', ['build', 'firebase:backup'], function(cb) {
   return ghPages.publish(config.dest.root, cb);
 });
 
+var firebaseLogin = function() {
+  deferred = Q.deffer(); 
+  var Firebase = require('firebase');
+  var ref = new Firebase(config.env.firebase.location);
+  ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
+    if (err) {
+      console.log('Login failed');
+      deffered.reject(err);
+    } else {
+      deffered.resolve(ref, data);
+    }
+  });
+  return deffered.promise;
+};
+
 gulp.task('firebase:rebuild', function(cb) {
   var Firebase = require('firebase');
   var ref = new Firebase(config.env.firebase.location);
@@ -246,31 +262,12 @@ gulp.task('firebase:createuser', function(cb) {
 });
 
 gulp.task('firebase:backup', function(cb) {
-  var Firebase = require('firebase');
-  var ref = new Firebase(config.env.firebase.location);
-  ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
-    if (err) {
-      console.log('Login failed. ', err);
+  firebaseLogin().then( function(ref, data) {
+    ref.on('value', function(snap) {
+      mkdirp.sync(`${__dirname}/backups`);
+      fs.writeFileSync(`${__dirname}/backups/${(new Date()).toGMTString()}`,
+       JSON.stringify(snap.val()), 'utf8');
       cb();
-    } else {
-      ref.on('value', function(snap) {
-        mkdirp.sync(`${__dirname}/backups`);
-        fs.writeFileSync(`${__dirname}/backups/${(new Date()).toGMTString()}`,
-                         JSON.stringify(snap.val()), 'utf8');
-        cb();
-      });
-    }
-  });
-});
-
-gulp.task('firebase:template', function(cb) {
-  var Firebase = require('firebase');
-  var ref = new Firebase(config.env.firebase.location);
-  ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
-    if (err) {
-      console.log('Login failed. ', err);
-      cb();
-    } else {
-    }
+    });
   });
 });
