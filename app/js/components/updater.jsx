@@ -136,7 +136,7 @@ module.exports = React.createClass({
               <strong>Status: </strong>
               <select value={this.state.status} onChange={this.statusUpdate}>
                 {STATUSES.map( (s) => {
-                  return (<option value={s}>{s}</option>)
+                  return (<option key={s} value={s}>{s}</option>)
                 })}
               </select>
             </div>

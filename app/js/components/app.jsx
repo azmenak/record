@@ -27,8 +27,9 @@ module.exports = React.createClass({
         this.setState({
           auth: true,
           user: snap.val()
-        })
+        });
       });
+      ref.child(`users/${e.detail.uid}/lastLogin`).set((new Date).toJSON());
     });
     window.addEventListener('authRequired', (e) => {
       this.setState({

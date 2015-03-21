@@ -31,6 +31,9 @@ module.exports = React.createClass({
       <header>
         <div className="topbar">
           <h2>Record</h2>
+          {!this.props.user && (
+            <span className="loading">Authenticating...</span>
+          )}
           <nav>
             <ul>
               {this.menu().map( (m) => { return (

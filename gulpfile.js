@@ -168,37 +168,65 @@ gulp.task('deploy', ['build', 'firebase:backup'], function(cb) {
   return ghPages.publish(config.dest.root, cb);
 });
 
+var ref = null;
 var firebaseLogin = function() {
-  deferred = Q.deffer(); 
   var Firebase = require('firebase');
-  var ref = new Firebase(config.env.firebase.location);
-  ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
-    if (err) {
-      console.log('Login failed');
-      deffered.reject(err);
-    } else {
-      deffered.resolve(ref, data);
-    }
+  ref = new Firebase(config.env.firebase.location);
+  return Q.Promise(function(resolve, reject) {
+    ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
+      if (err) reject(err);
+      else resolve(data);
+    });
   });
-  return deffered.promise;
 };
 
-gulp.task('firebase:rebuild', function(cb) {
-  var Firebase = require('firebase');
-  var ref = new Firebase(config.env.firebase.location);
-  ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
-    if (err) {
-      cb(err);
-    } else {
-      var localData = JSON.parse(fs.readFileSync(`${__dirname}/data.json`));
-      ref.set(localData, function(err) {
-        if (err) {
-          cb(err);
-        } else {
-          cb();
-        }
+gulp.task('firebase:backup', function() {
+  return firebaseLogin().then( function(data) {
+    return Q.Promise(function(resolve) {
+      ref.on('value', function(snap) {
+        mkdirp.sync(`${__dirname}/backups`);
+        var backups = fs.readdirSync(`${__dirname}/backups`);
+        var val = JSON.stringify(snap.val());
+        fs.writeFileSync(
+          `${__dirname}/backups/${(new Date()).toGMTString()}.json`,
+          val, 'utf8'
+        );
+        backups.forEach( function(b) {
+          var backup = JSON.stringify(
+            JSON.parse(fs.readFileSync(`${__dirname}/backups/${b}`))
+          );
+          if (val === backup) {
+            fs.unlinkSync(`${__dirname}/backups/${b}`);
+            console.log("Removed identical backup: ", b);
+          };
+        });
+        resolve();
       });
-    }
+    });
+  });
+});
+
+gulp.task('firebase:rebuild', ['firebase:backup'], function() {
+  return firebaseLogin().then(function(data) {
+    var localData = JSON.parse(fs.readFileSync(`${__dirname}/data.json`));
+    return Q.ninvoke(ref.set, localData);
+  });
+});
+
+gulp.task('firebase:rollback', function() {
+  var argv = require('minimist')(process.argv.slice(2));
+  return firebaseLogin().then(function(data) {
+    return Q.Promise(function(resolve) {
+      var backups = fs.readdirSync(`${__dirname}/backups`);
+      var sorted = _.sortBy(backups, function(b) {
+        return -(new Date(b.slice(0,-5)));
+      });
+      var steps = argv.steps ? parseInt(argv.steps) : 0
+      var last = JSON.parse(fs.readFileSync(`${__dirname}/backups/${sorted[steps]}`));
+      ref.set(last, function(err) {
+        resolve(sorted);
+      });
+    });
   });
 });
 
@@ -214,60 +242,42 @@ gulp.task('firebase:rebuild', function(cb) {
  */
 gulp.task('firebase:createuser', function(cb) {
   var argv = require('minimist')(process.argv.slice(2));
-  var Firebase = require('firebase');
-  var ref = new Firebase(config.env.firebase.location);
-  ref.authWithCustomToken(config.env.firebase.secret, function(err, data) {
-    if (err) {
-      console.log('Login failed. ', err);
-      cb();
-    } else {
-      ref.createUser({
-        email: argv.email,
-        password: argv.password
-      }, function(err, userData) {
-        if (err) {
-          switch (err.code) {
-            case "EMAIL_TAKEN":
-              console.log("The new user account cannot be created because the email is already in use.");
-            break;
-            case "INVALID_EMAIL":
-              console.log("The specified email is not a valid email.");
-            break;
-            default:
-              console.log("Error creating user:", err);
+  firebaseLogin.then( function(data) {
+    ref.createUser({
+      email: argv.email,
+      password: argv.password
+    }, function(err, userData) {
+      if (err) {
+        switch (err.code) {
+          case "EMAIL_TAKEN":
+            console.log("The new user account cannot be created because the email is already in use.");
+          break;
+          case "INVALID_EMAIL":
+            console.log("The specified email is not a valid email.");
+          break;
+          default:
+            console.log("Error creating user:", err);
+          cb();
+        }
+      } else {
+        console.log("Successfully created user account with uid:", userData.uid);
+        ref.child(`users/${userData.uid}`).set({
+          admin: !!argv.admin,
+          email: argv.email,
+          firstName: argv['first-name'],
+          lastName: argv['last-name'],
+          provider: 'password',
+          createdOn: (new Date).toJSON()
+        }, function(err) {
+          if (err) {
+            console.log("Error setting user data");
+            cb();
+          } else {
+            console.log("User data has been set");
             cb();
           }
-        } else {
-          console.log("Successfully created user account with uid:", userData.uid);
-          ref.child(`users/${userData.uid}`).set({
-            admin: !!argv.admin,
-            email: argv.email,
-            firstName: argv['first-name'],
-            lastName: argv['last-name'],
-            provider: 'password',
-            createdOn: (new Date).toJSON()
-          }, function(err) {
-            if (err) {
-              console.log("Error setting user data");
-              cb();
-            } else {
-              console.log("User data has been set");
-              cb();
-            }
-          })
-        }
-      })
-    }
+        })
+      }
+    })
   })
-});
-
-gulp.task('firebase:backup', function(cb) {
-  firebaseLogin().then( function(ref, data) {
-    ref.on('value', function(snap) {
-      mkdirp.sync(`${__dirname}/backups`);
-      fs.writeFileSync(`${__dirname}/backups/${(new Date()).toGMTString()}`,
-       JSON.stringify(snap.val()), 'utf8');
-      cb();
-    });
-  });
 });
