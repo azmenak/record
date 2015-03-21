@@ -47,9 +47,9 @@ module.exports = React.createClass({
     var products = _(this.state.products)
       .sortByOrder([this.state.sort], [this.state.reverseSort])
       .map( (product) => {
-        if (product.status !== 'CURRENT') return;
+        if (product.status in ['CURRENT', 'SPECIAL']) return;
         return (
-          <tr className="pr" key={product.name}>
+          <tr className={`pr status-${product.status}`} key={product.name}>
             <th>
               <span className="product-name">{product.name}</span>
               <br />
