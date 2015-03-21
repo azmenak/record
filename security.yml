@@ -7,15 +7,15 @@ schema: {}
 
 access:
   - location: /
-    read: true && isAdmin()
-    write: true && isAdmin()
+    .read: isAdmin()
+    .write: isAdmin()
 
-  - location: /users/$userid/
-    read: isUser($userid)
+  #- location: /users/$userid/
+    #read: isUser($userid)
 
-  - location: /users/$userid/email/
-    write: isUser($userid)
-  - location: /users/$userid/firstName/
-    write: isUser($userid)
-  - location: /users/$userid/lastName/
-    write: isUser($userid
+  #- location: /users/$userid/email/
+    #write: isUser($userid)
+  #- location: /users/$userid/firstName/
+    #write: isUser($userid)
+  #- location: /users/$userid/lastName/
+    #write: isUser($userid

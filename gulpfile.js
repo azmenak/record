@@ -281,3 +281,33 @@ gulp.task('firebase:createuser', function(cb) {
     })
   })
 });
+
+gulp.task('firebase:security', function(cb) {
+  var https = require('https');
+  var rules = fs.readFileSync(`${__dirname}/rules.json`);
+  var options = {
+    hostname: config.env.firebase.location,
+    path: `security?auth?=${config.env.firebase.secret}`,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/JSON',
+      'Content-length': rules.length
+    }
+  }
+
+  var req. = http.request(options, function(res) {
+    console.log('STATUS: ' + res.statusCode);
+    console.log('HEADERS: ' + JSON.stringify(res.headers));
+    res.setEncoding('utf8');
+    res.on('data', function (chunk) {
+      console.log('BODY: ' + chunk);
+    });
+  })
+
+  req.on('error', function(e) {
+    console.log('problem with request: ' + e.message);
+  });
+
+  req.write(rules);
+  req.end();
+});
