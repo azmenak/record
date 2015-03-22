@@ -123,6 +123,10 @@ gulp.task('extras', function() {
   return gulp.src(`${__dirname}/config/CNAME`)
     .pipe(gulp.dest(config.dest.root));
 });
+gulp.task('imgs', function() {
+  return gulp.src(`${config.src.root}/img/**/*`)
+    .pipe(gulp.dest(`${config.dest.root}/img`));
+});
 
 gulp.task('clean', function (cb) {
   return require('del')([config.dest.root], cb);
@@ -138,7 +142,7 @@ gulp.task('size', function () {
 
 gulp.task('build', function(cb) {
   return runSequence('clean',
-              ['styles', 'less', 'js', 'extras'],
+              ['styles', 'less', 'js', 'extras', 'imgs'],
               'html',
               'size'
          , cb);
@@ -156,6 +160,7 @@ gulp.task('serve', ['build'], function() {
   gulp.watch("**/*.jade", ['html']);
   gulp.watch("**/*.styl", ['styles']);
   gulp.watch("**/*.less", ['less']);
+  gulp.watch("app/img/**/*", ['imgs', reload]);
   gulp.watch([
     "app/**/*.js",
     "app/**/*.jsx",
@@ -295,7 +300,7 @@ gulp.task('firebase:security', function(cb) {
     }
   }
 
-  var req. = http.request(options, function(res) {
+  var req = http.request(options, function(res) {
     console.log('STATUS: ' + res.statusCode);
     console.log('HEADERS: ' + JSON.stringify(res.headers));
     res.setEncoding('utf8');
