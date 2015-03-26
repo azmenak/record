@@ -78,9 +78,18 @@ gulp.task('js', function () {
 });
 
 gulp.task('less', function() {
+  var autoprefixer = require('autoprefixer-core');
+  var processors = [autoprefixer({
+    browsers: ['last 2 versions']
+  })]
+  if (config.env.production) {
+    processors.push(require('css-mqpacker'));
+    processors.push(require('csswring'));
+  }
+
   gulp.src(`${config.src.style}/material-ui.less`)
     .pipe( $.less() )
-    .pipe( $.postcss([require('css-mqpacker'), require('csswring')]) )
+    .pipe( $.postcss(processors) )
     .pipe( gulp.dest(config.dest.style) )
     .pipe( reload({stream: true }) )
     .pipe( $.if(config.env.production, $.rev()))
