@@ -1,21 +1,7 @@
-functions:
-  - isLoggedIn(): auth.uid !== null
-  - isUser(username): auth.uid === username
-  - isAdmin(): root.users[auth.uid].admin === true
+functions:            #reusable boolean functions
+  - isLoggedIn():      auth.username !== null
+  - createOnly():      next.exists() && !prev.exists()
+  - deleteOnly():      prev.exists() && !next.exists()
+  - createOrDelete():  createOnly() || deleteOnly()
+  - isAdmin():         root.users[auth.uid].admin === true
 
-schema: {}
-
-access:
-  - location: /
-    .read: isAdmin()
-    .write: isAdmin()
-
-  #- location: /users/$userid/
-    #read: isUser($userid)
-
-  #- location: /users/$userid/email/
-    #write: isUser($userid)
-  #- location: /users/$userid/firstName/
-    #write: isUser($userid)
-  #- location: /users/$userid/lastName/
-    #write: isUser($userid
