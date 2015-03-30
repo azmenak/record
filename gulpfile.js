@@ -26,7 +26,8 @@ var config = {
     firebase: {
       location: "https://record.firebaseio.com/",
       secret: secrets.firebase
-    }
+    },
+    backupKey: secrets.backupKey
   }
 };
 config.dest.js       = `${config.dest.root}/js`;
@@ -36,6 +37,21 @@ config.src.js        = `${config.src.root}/js`;
 config.src.style     = `${config.src.root}/style`;
 config.src.main      = `${config.src.js}/main.jsx`;
 
+var crypto = require('crypto');
+config.env.algo = 'aes-256-ctr';
+
+var encrypt = function(txt) {
+  var cipher = crypto.createCipher(config.env.algo, config.env.backupKey);
+  var crypted = cipher.update(txt, 'utf8', 'hex');
+  crypted += cipher.final('hex');
+  return crypted;
+};
+var decrypt = function(hash) {
+  var decipher = crypto.createDecipher(config.env.algo, config.env.backupKey);
+  var dec = decipher.update(hash, 'hex', 'utf8');
+  dec += decipher.final('utf8');
+  return dec;
+};
 
 gulp.task('js', function () {
   return gulp.src(config.src.main, {read: false})
@@ -180,27 +196,56 @@ var firebaseLogin = function() {
   });
 };
 
+
 gulp.task('firebase:backup', function() {
+  var git = require('simple-git');
   return firebaseLogin().then( function(data) {
     return Q.Promise(function(resolve) {
       ref.on('value', function(snap) {
         mkdirp.sync(`${__dirname}/backups`);
         var backups = fs.readdirSync(`${__dirname}/backups`);
         var val = JSON.stringify(snap.val());
-        fs.writeFileSync(
-          `${__dirname}/backups/${(new Date()).toGMTString()}.json`,
-          val, 'utf8'
-        );
-        backups.forEach( function(b) {
-          var backup = JSON.stringify(
-            JSON.parse(fs.readFileSync(`${__dirname}/backups/${b}`))
-          );
-          if (val === backup) {
-            fs.unlinkSync(`${__dirname}/backups/${b}`);
-            console.log("Removed identical backup: ", b);
+        var filename = `${__dirname}/backups/${(new Date()).toGMTString()}.backup`
+        fs.writeFileSync(filename, encrypt(val), 'utf8');
+        Q.all(backups.map( function(b) {
+          var _deferred = Q.defer();
+          fs.readFile(`${__dirname}/backups/${b}`, function(err, buf) {
+            var backup = JSON.stringify(JSON.parse(decrypt(buf.toString())));
+            if (val === backup) {
+              var backupFile = `${__dirname}/backups/${b}`;
+              fs.unlink(backupFile, function(err) {
+                console.log("Removed identical backup: ", b);
+                _deferred.resolve(backupFile);
+              });
+            } else {
+              _deferred.resolve(null);
+            }
+          });
+          return _deferred.promise;
+        })).done( function(files) {
+          var files = _.compact(files).concat(filename).map( function(f) {
+            return f.split(__dirname)[1].slice(1);
+          });
+          var spaceRestore = function(s) {
+            return s.replace(/,/g, ' ').replace(/\s{2}/g, ', ').replace(/\"/g, '');
           };
+          var notAdded, deleted;
+          git().status(function(err, st) { 
+            notAdded = st.not_added.map( spaceRestore );
+            deleted = st.deleted.map( spaceRestore );
+            files = _.filter(files, function(ff) {
+              return _.includes(notAdded + deleted, ff);
+            });
+          })
+          .then( function() {
+            git().add(files)
+              .commit(`Backup @ ${(new Date()).toGMTString()}`, files)
+              .then(function() {
+                $.util.log('Comitted backup to git');
+                resolve();
+              });
+          });
         });
-        resolve();
       });
     });
   });
@@ -219,10 +264,14 @@ gulp.task('firebase:rollback', function() {
     return Q.Promise(function(resolve) {
       var backups = fs.readdirSync(`${__dirname}/backups`);
       var sorted = _.sortBy(backups, function(b) {
-        return -(new Date(b.slice(0,-5)));
+        return -(new Date(b.split('.')[0]));
       });
       var steps = argv.steps ? parseInt(argv.steps) : 0
-      var last = JSON.parse(fs.readFileSync(`${__dirname}/backups/${sorted[steps]}`));
+      var last = JSON.parse(
+        decrypt(
+          fs.readFileSync(`${__dirname}/backups/${sorted[steps]}`).toString()
+        )
+      );
       ref.set(last, function(err) {
         resolve(sorted);
       });
