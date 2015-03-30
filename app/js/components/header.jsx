@@ -29,6 +29,7 @@ module.exports = React.createClass({
   render() {
     return (
       <header>
+        {window.navigator.standalone && (<div  className="status-bar" />)}
         <div className="topbar">
           <h2>Record</h2>
           {!this.props.user && (

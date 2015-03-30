@@ -47,15 +47,15 @@ module.exports = React.createClass({
     var products = _(this.state.products)
       .sortByOrder([this.state.sort], [this.state.reverseSort])
       .map( (product) => {
-        if (product.status !== 'CURRENT') return;
+        if (product.status in ['CURRENT', 'SPECIAL']) return;
         return (
-          <tr className="pr" key={product.name}>
+          <tr className={`pr status-${product.status}`} key={product.name}>
             <th>
               <span className="product-name">{product.name}</span>
               <br />
               <small className="product-code">{product.id}</small>
             </th>
-            <td>{num(product.qty).format('0,0')+' ft²'}</td>
+            <td>{Number(product.qty) == 0 ? '—' : num(product.qty).format('0,0')+' ft²'}</td>
           </tr>
         );
       })
