@@ -8,11 +8,23 @@ var cookieJar = require('lib/cookie.js');
  * @param cb {Function} (authRequired, authData)
  **/
 
+ref.onAuth( function(authData) {
+  if (authData) {
+    // login success
+    console.log("AUTH SUCCESS", authData);
+  } else {
+    // no more auth
+    console.log("AUTH REMOVED");
+  }
+});
+
 var auth = function (cb) {
   // Check for auth in cookies
   if (cookieJar.hasItem('auth')) {
     // First check if the Firebase ref is already authed
     if (ref.getAuth()) { return auth.authNotRequired(cb); }
+
+    console.log('hi');
 
     // Retreive the auth data from cookies and check the expiry
     let authData = JSON.parse(cookieJar.getItem('auth'));
