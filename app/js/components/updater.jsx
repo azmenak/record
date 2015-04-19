@@ -64,12 +64,21 @@ module.exports = React.createClass({
     e.preventDefault();
     var type = this.state.transactionType;
     var qty = Number(this.state.transactionQty);
+
+    // Use to compare old data against changes
     var old = null;
+
+    // TODO create some better validation
+    // don't use JS confirm...
+
     if (confirm(
       `Are you sure you want to create transaction:
         ${type} ${num(qty).format('0,0')+' sq.ft.'}`
     )) {
+
+      // Create a record of the transaction, and keep a reference of the ID
       var pushRef = ref.child('transactions').push()
+      // then set the data for the transaction
       pushRef.set({
         type: type,
         qty: qty,
@@ -77,26 +86,35 @@ module.exports = React.createClass({
         createdOn: (new Date()).toJSON(),
         product: this.props.id
       }, (err) => {
+
         if (err) {
+          // TODO throw an event when there are errors like this...
           console.log(err);
         } else {
+
+          // Update the data in the products data set
           this.ref().transaction( (current) => {
             old = _.clone(current);
             var newQty = current.qty + (type === "ADD" ? qty : -qty);
             current.qty = newQty;
             return current;
           }, (err, commited, snap) => {
+
             if (err) {
+              // TODO throw an error event...
               console.log(err);
             } else {
-              this.ref().child('changes').push({
+
+              // Keep track of changes made to a product
+              ref().child('changes').push({
                 qty: {
                   newValue: snap.val().qty,
                   prevValue: old.qty
                 },
                 transaction: pushRef.key(),
                 changedOn: (new Date()).toJSON(),
-                changedBy: ref.getAuth().uid
+                changedBy: ref.getAuth().uid,
+                product: this.props.id
               });
               this.toggleTransactionForm();
             }
