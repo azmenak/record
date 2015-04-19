@@ -3,7 +3,6 @@
 var fs          = require('fs');
 var mkdirp      = require('mkdirp');
 var url         = require('url');
-var historyApiFallback = require('connect-history-api-fallback');
 var gulp        = require('gulp');
 var $           = require('gulp-load-plugins')();
 var browserSync = require('browser-sync');
@@ -130,7 +129,7 @@ gulp.task('styles', function() {
 });
 
 gulp.task('html', function (cb) {
-  console.log(manifest(config.dest.manifest));
+  $.util.log(manifest(config.dest.manifest));
   return gulp.src(config.src.root + '/views/layout.jade')
     .pipe( $.jade({
       locals: _.assign({},
@@ -174,6 +173,7 @@ gulp.task('build', function(cb) {
 });
 
 gulp.task('serve', ['build'], function() {
+  var historyApiFallback = require('connect-history-api-fallback');
   browserSync({
     port: 9000,
     server: {
@@ -210,7 +210,6 @@ var firebaseLogin = function() {
   });
 };
 
-
 gulp.task('firebase:backup', function() {
   var git = require('simple-git');
   return firebaseLogin().then( function(data) {
@@ -228,7 +227,7 @@ gulp.task('firebase:backup', function() {
             if (val === backup) {
               var backupFile = `${__dirname}/backups/${b}`;
               fs.unlink(backupFile, function(err) {
-                console.log("Removed identical backup: ", b);
+                $.util.log("Removed identical backup: ", b);
                 _deferred.resolve(backupFile);
               });
             } else {
@@ -313,17 +312,17 @@ gulp.task('firebase:createuser', function(cb) {
       if (err) {
         switch (err.code) {
           case "EMAIL_TAKEN":
-            console.log("The new user account cannot be created because the email is already in use.");
+            $.util.log("The new user account cannot be created because the email is already in use.");
           break;
           case "INVALID_EMAIL":
-            console.log("The specified email is not a valid email.");
+            $.util.log("The specified email is not a valid email.");
           break;
           default:
-            console.log("Error creating user:", err);
+            $.util.log("Error creating user:", err);
           cb();
         }
       } else {
-        console.log("Successfully created user account with uid:", userData.uid);
+        $.util.log("Successfully created user account with uid:", userData.uid);
         ref.child(`users/${userData.uid}`).set({
           admin: !!argv.admin,
           email: argv.email,
@@ -333,10 +332,10 @@ gulp.task('firebase:createuser', function(cb) {
           createdOn: (new Date).toJSON()
         }, function(err) {
           if (err) {
-            console.log("Error setting user data");
+            $.util.log("Error setting user data");
             cb();
           } else {
-            console.log("User data has been set");
+            $.util.log("User data has been set");
             cb();
           }
         })
@@ -359,16 +358,16 @@ gulp.task('firebase:security', function(cb) {
   }
 
   var req = http.request(options, function(res) {
-    console.log('STATUS: ' + res.statusCode);
-    console.log('HEADERS: ' + JSON.stringify(res.headers));
+    $.util.log('STATUS: ' + res.statusCode);
+    $.util.log('HEADERS: ' + JSON.stringify(res.headers));
     res.setEncoding('utf8');
     res.on('data', function (chunk) {
-      console.log('BODY: ' + chunk);
+      $.util.log('BODY: ' + chunk);
     });
   })
 
   req.on('error', function(e) {
-    console.log('problem with request: ' + e.message);
+    $.util.log('problem with request: ' + e.message);
   });
 
   req.write(rules);
