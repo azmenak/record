@@ -244,7 +244,7 @@ gulp.task('firebase:backup', function() {
             return s.replace(/,/g, ' ').replace(/\s{2}/g, ', ').replace(/\"/g, '');
           };
           var notAdded, deleted;
-          git().status(function(err, st) { 
+          git().status(function(err, st) {
             notAdded = st.not_added.map( spaceRestore );
             deleted = st.deleted.map( spaceRestore );
             files = _.filter(files, function(ff) {
