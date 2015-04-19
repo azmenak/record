@@ -3,6 +3,13 @@
 var ref = require('app/ref.js');
 var cookieJar = require('lib/cookie.js');
 
+ref.onAuth(function(data) {
+  if (!data) {
+    var e = new CustomEvent('authRequired');
+    window.dispatchEvent(e);
+  }
+});
+
 /**
  * Auth module
  * @param cb {Function} (authRequired, authData)

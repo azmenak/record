@@ -7,6 +7,8 @@ var Link = Router.Link;
 var Mui = require('material-ui');
 var FlatButton = Mui.FlatButton;
 
+var ref = require('app/ref.js');
+
 /**
  * This is a controlled component
  * Updates are pass down thought props from app.jsx
@@ -18,12 +20,16 @@ module.exports = React.createClass({
   menu() {
     if (!this.props.user) { return []; }
     var _menu = [
-      {to: 'home', name: 'Home'},
+      {to: 'home', name: '🏠'},
     ];
     if (this.props.user.admin || this.props.user.editor) {
-      _menu.push({to: 'manage', name: 'Manage'});
+      _menu.push({to: 'manage', name: '📝'});
     }
     return _menu;
+  },
+
+  logout() {
+    ref.unauth();
   },
 
   render() {
@@ -31,19 +37,26 @@ module.exports = React.createClass({
       <header>
         {window.navigator.standalone && (<div  className="status-bar" />)}
         <div className="topbar">
-          <h2>Record</h2>
           {!this.props.user && (
-            <span className="loading">Authenticating...</span>
+            <h2 className="loading">Authenticating...</h2>
           )}
           <nav>
             <ul>
               {this.menu().map( (m) => { return (
                 <li key={m.name}>
                   <Link to={m.to}>
-                    {m.name}
+                    <FlatButton>{m.name}</FlatButton>
                   </Link>
                 </li>
               ) })}
+              {this.props.user && (
+                <li className="logout">
+                  <FlatButton
+                    onClick={this.logout}>
+                    🚫
+                  </FlatButton>
+                </li>
+              )}
             </ul>
           </nav>
         </div>
