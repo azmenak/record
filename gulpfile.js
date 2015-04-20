@@ -210,7 +210,11 @@ var firebaseLogin = function() {
   });
 };
 
-gulp.task('firebase:backup', function() {
+gulp.task('firebase:backup', function(cb) {
+  if (!config.env.backupKey) {
+    $.util.log("No backup key found in secrets.json. Skipping backup");
+    return cb();
+  }
   var git = require('simple-git');
   return firebaseLogin().then( function(data) {
     return Q.Promise(function(resolve) {
@@ -222,8 +226,8 @@ gulp.task('firebase:backup', function() {
         fs.writeFileSync(filename, encrypt(val), 'utf8');
         Q.all(backups.map( function(b) {
           var _deferred = Q.defer();
-          fs.readFile(`${__dirname}/backups/${b}`, function(err, buf) {
-            var backup = JSON.stringify(JSON.parse(decrypt(buf.toString())));
+          fs.readFile(`${__dirname}/backups/${b}`, {encoding: 'utf8'}, function(err, buf) {
+            var backup = /(\.backup)$/.test(b) ? JSON.stringify(JSON.parse(decrypt(buf))) : '';
             if (val === backup) {
               var backupFile = `${__dirname}/backups/${b}`;
               fs.unlink(backupFile, function(err) {
